@@ -23,7 +23,7 @@ var setConcurrency = function(max) {
  */
 var add = function(job,args) {
     jobsList.push([job,args]);
-    jobsTotal = jobsList.length;
+    jobsTotal++;
 }
 
 

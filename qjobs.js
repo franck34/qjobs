@@ -112,4 +112,4 @@ module.exports = new EventEmitter();
 module.exports.run = run;
 module.exports.add = add;
 module.exports.pause = pause;
-
+module.exports.setConcurrency = setConcurrency;

@@ -1,4 +1,4 @@
-**qjobs` is a simple and stupid queue job manager for nodejs.**
+**qjobs is a simple and stupid queue job manager for nodejs.**
 
 * concurrency limiter
 * dynamic queue (a job can be add while the queue is treated)

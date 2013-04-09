@@ -34,7 +34,7 @@ var myTask = function(args,next) {
 
 // Notice the "new" before require, to be able to use more 
 // than one queue independently
-var myQueueJobs = new require('./lib/pile');
+var myQueueJobs = new require('qjobs');
 
 // Let's add 30 task and add them to the queue
 for (var i = 0; i<30; i++) {
@@ -81,5 +81,3 @@ myQueueJobs.on('inPause',function(since) {
 myQueueJobs.run();
 
 
-console.log('Notice this message does not appear when queue is finished.');
-```

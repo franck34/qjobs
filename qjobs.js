@@ -4,6 +4,7 @@ var EventEmitter = require('events').EventEmitter;
 var maxConcurrency  = 10;
 var jobsRunning = 0;
 var jobsRunned = 0;
+var jobsTotal = 0;
 var jobsList = [];
 var paused = false;
 var pausedId = null;
@@ -22,6 +23,7 @@ var setConcurrency = function(max) {
  */
 var add = function(job,args) {
     jobsList.push([job,args]);
+    jobsTotal = jobsList.length;
 }
 
 
@@ -49,7 +51,8 @@ var run = function() {
 
         // add an internal identifiant for
         // hypothetical external use
-        args._taskId = jobsRunned++;
+        args._jobId = jobsRunned++;
+        args._jobsTotal = jobsTotal;
 
         // emit taskStart event before launch the job
         module.exports.emit('taskStart',args);

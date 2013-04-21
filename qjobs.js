@@ -54,7 +54,7 @@ var run = function() {
         // hypothetical external use
         args._jobId = jobId++;
         args._jobsTotal = jobsTotal;
-        args.__progress= Math.round((jobsDone/jobsTotal)*100);
+        args.__progress= Math.ceil(((jobsDone+1)/jobsTotal)*100);
 
         // emit taskStart event before launch the job
         module.exports.emit('taskStart',args);
@@ -81,7 +81,7 @@ var next = function(args) {
     jobsRunning--;
     jobsDone++;
 
-    args.__progress= Math.round((jobsDone/jobsTotal)*100);
+    args.__progress= Math.ceil((jobsDone/jobsTotal)*100);
 
     // emit 'taskEnd' event
     module.exports.emit('taskEnd',args);

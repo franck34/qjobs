@@ -33,6 +33,7 @@ myQueueJobs.on('start',function() {
 
 // I want to know when the last job has ended
 myQueueJobs.on('end',function() {
+    clearInterval(statId);
     console.log('end');
 });
 
@@ -65,5 +66,6 @@ myQueueJobs.on('inPause',function(since) {
 // JOBS !! leeeeeeeeeet's staaaaaaaart !
 myQueueJobs.run();
 
-
-
+var statId = setInterval(function() {
+    console.log(myQueueJobs.stats());
+},100);

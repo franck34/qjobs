@@ -1,6 +1,6 @@
 {
   "name": "qjobs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "qjobs is a simple and stupid queue job manager for nodejs",
   "main": "qjobs.js",
   "directories": {

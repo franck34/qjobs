@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var maxConcurrency  = 10;
 var jobsRunning = 0;
-var jobsRunned = 0;
+var jobsDone = 0;
 var jobsTotal = 0;
 var jobsList = [];
 var paused = false;
@@ -33,7 +33,7 @@ var add = function(job,args) {
 var run = function() {
 
     // first launch, let's emit start event
-    if (jobsRunned==0) module.exports.emit('start');
+    if (jobsDone==0) module.exports.emit('start');
 
     // while queue is empty and number of job running
     // concurrently are less than max job running,
@@ -51,7 +51,7 @@ var run = function() {
 
         // add an internal identifiant for
         // hypothetical external use
-        args._jobId = jobsRunned++;
+        args._jobId = jobsDone++;
         args._jobsTotal = jobsTotal;
 
         // emit taskStart event before launch the job
@@ -110,9 +110,18 @@ var pause = function(status) {
     }
 }
 
+var stats = function() {
+    return {
+        jobsTotal:jobsTotal,
+        jobsRunning:jobsRunning,
+        jobsDone:jobsDone,
+        concurrency:maxConcurrency
+    }
+}
 
 module.exports = new EventEmitter();
 module.exports.run = run;
 module.exports.add = add;
 module.exports.pause = pause;
 module.exports.setConcurrency = setConcurrency;
+module.exports.stats = stats;

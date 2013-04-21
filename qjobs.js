@@ -5,6 +5,7 @@ var maxConcurrency  = 10;
 var jobsRunning = 0;
 var jobsDone = 0;
 var jobsTotal = 0;
+var jobId = 0;
 var jobsList = [];
 var paused = false;
 var pausedId = null;
@@ -51,8 +52,9 @@ var run = function() {
 
         // add an internal identifiant for
         // hypothetical external use
-        args._jobId = jobsDone++;
+        args._jobId = jobId++;
         args._jobsTotal = jobsTotal;
+        args.__progress= Math.round((jobsDone/jobsTotal)*100);
 
         // emit taskStart event before launch the job
         module.exports.emit('taskStart',args);
@@ -75,11 +77,14 @@ var run = function() {
  */
 var next = function(args) {
 
+    // update counters
+    jobsRunning--;
+    jobsDone++;
+
+    args.__progress= Math.round((jobsDone/jobsTotal)*100);
+
     // emit 'taskEnd' event
     module.exports.emit('taskEnd',args);
-
-    // decrement number of jobs running
-    jobsRunning--;
 
     // if queue has been set to pause
     // then do nothing
@@ -115,6 +120,7 @@ var stats = function() {
         jobsTotal:jobsTotal,
         jobsRunning:jobsRunning,
         jobsDone:jobsDone,
+        progress:Math.round((jobsDone/jobsTotal)*100),
         concurrency:maxConcurrency
     }
 }

@@ -14,7 +14,7 @@ var myTask = function(args,next) {
             myQueueJobs.add(myTask,[999,'bla '+args._taskId]);
         }
         next();
-    },1000);
+    },Math.random(1000)*2000);
 }
 
 // Notice the "new" before require, to be able to use more
@@ -39,13 +39,13 @@ myQueueJobs.on('end',function() {
 
 // I want to know when each job has started
 myQueueJobs.on('taskStart',function(args) {
-    console.log('taskRun',args);
+    console.log('taskStart',args);
 });
 
 // I want to know when each job has ended
 myQueueJobs.on('taskEnd',function(args) {
 
-    console.log('taskend',args);
+    console.log('taskEnd',args);
 
     // If i'm taskId 10, then make a pause of 5 sec
 
@@ -68,4 +68,4 @@ myQueueJobs.run();
 
 var statId = setInterval(function() {
     console.log(myQueueJobs.stats());
-},100);
+},1000);

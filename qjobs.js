@@ -5,11 +5,16 @@ var maxConcurrency  = 10;
 var jobsRunning = 0;
 var jobsDone = 0;
 var jobsTotal = 0;
+var timeStart;
 var jobId = 0;
 var jobsList = [];
 var paused = false;
 var pausedId = null;
 var lastPause = 0;
+var lastNow;
+var previousJobsDone;
+var previousCpt;
+var previousTimeRemaining;
 
 /*
  * helper to set max concurrency
@@ -34,7 +39,11 @@ var add = function(job,args) {
 var run = function() {
 
     // first launch, let's emit start event
-    if (jobsDone==0) module.exports.emit('start');
+    if (jobsDone == 0) {
+        module.exports.emit('start');
+        timeStart = Date.now();
+        lastNow = timeStart;
+    }
 
     // while queue is empty and number of job running
     // concurrently are less than max job running,
@@ -53,8 +62,9 @@ var run = function() {
         // add an internal identifiant for
         // hypothetical external use
         args._jobId = jobId++;
-        args._jobsTotal = jobsTotal;
-        args.__progress= Math.ceil(((jobsDone+1)/jobsTotal)*100);
+        //args.__jobsTotal = jobsTotal;
+        //args.__timeStart = timeStart;
+        //args.__progress= Math.ceil(((jobsDone+1)/jobsTotal)*100);
 
         // emit taskStart event before launch the job
         module.exports.emit('taskStart',args);
@@ -62,10 +72,11 @@ var run = function() {
         // run the job, passing args, next() function,
         // binded to 'this'
         job[0](job[1],next.bind(this,args));
+
     }
 
     // if we really finish all the jobs, let's end
-    if (jobsList.length==0&&jobsRunning==0) {
+    if (jobsList.length==0 && jobsRunning==0) {
         // emit 'end' event
         module.exports.emit('end');
     }
@@ -80,8 +91,6 @@ var next = function(args) {
     // update counters
     jobsRunning--;
     jobsDone++;
-
-    args.__progress= Math.ceil((jobsDone/jobsTotal)*100);
 
     // emit 'taskEnd' event
     module.exports.emit('taskEnd',args);
@@ -107,22 +116,59 @@ var pause = function(status) {
         run();
     }
     if (paused && !pausedId) {
-        lastPause = new Date().getTime();
+        lastPause = Date.now();
         pausedId = setInterval(function() {
-            var since= new Date().getTime() - lastPause;
+            var since= Date.now() - lastPause;
             module.exports.emit('inPause',since);
         },1000);
     }
 }
 
 var stats = function() {
-    return {
-        jobsTotal:jobsTotal,
-        jobsRunning:jobsRunning,
-        jobsDone:jobsDone,
-        progress:Math.round((jobsDone/jobsTotal)*100),
-        concurrency:maxConcurrency
+
+    var now =  Date.now();
+    var cpt = jobsTotal-jobsDone;
+    //+jobsRunning;
+
+    var o = {};
+
+    o._timeStart = timeStart||'N/A';
+    o._timeElapsed = now - timeStart||'N/A';
+    /* TODO: fix me
+    if (paused) {
+        o._timeRemaining = 'N/A';
+    } else {
+        o._jobsPerSec = Math.ceil(((now-lastNow)/1000)*(jobsDone-previousJobsDone));
+        if (previousCpt!=cpt) {
+            o._timeRemaining = Math.round((o._jobsPerSec * cpt)/1000)/60;
+        } else {
+            o._timeRemaining =  previousTimeRemaining;
+        }
     }
+    */
+    o._jobsTotal = jobsTotal;
+    o._jobsRunning = jobsRunning;
+    o._jobsDone = jobsDone;
+    o._progress = Math.floor((jobsDone/jobsTotal)*100);
+    o._concurrency = maxConcurrency;
+    if (paused) {
+        o._status = 'Paused';
+    } else {
+        if (!o._timeElapsed) {
+            o._status = 'Starting';
+        } else {
+            if (jobsTotal == jobsDone) {
+                o._status = 'Finished';
+            } else {
+                o._status = 'Running';
+            }
+        }
+    }
+    previousJobsDone = jobsDone;
+    previousCpt = cpt;
+    previousTimeRemaining = o._timeRemaining;
+    lastNow = now;
+    return o;
 }
 
 module.exports = new EventEmitter();

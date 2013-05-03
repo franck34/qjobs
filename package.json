@@ -26,8 +26,5 @@
   "author": "Franck TABARY",
   "license": "BeerWare",
   "readmeFilename": "Readme.md",
-  "gitHead": "6b6ea2dd626799e946ab700e4c4902ab792d3bb2",
-  "devDependencies": {
-      "tap": "~0.4.0"
-  }
+  "gitHead": "6b6ea2dd626799e946ab700e4c4902ab792d3bb2"
 }

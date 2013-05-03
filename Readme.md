@@ -1,4 +1,4 @@
-https://travis-ci.org/franck34/qjobs.png
+[![Build Status](https://secure.travis-ci.org/franck34/qjobs.png)](http://travis-ci.org/franck34/qjobs)
 
 **qjobs is a simple and stupid queue job manager for nodejs.**
 

@@ -16,8 +16,10 @@
 
 **Example :**
 
-```
+(take a look at tests directory for more noisy examples)
 
+
+```
 // My non blocking main job
 var myjob = function(args,next) {
 

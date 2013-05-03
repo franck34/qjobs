@@ -11,27 +11,24 @@
 **Compatibility :**
 * not tested with nodejs < 0.10
 
-**Help needed :**
-* i have no idea how to make unit tests
-
 
 **Example :**
 
 ```
 
-// My non blocking main task
-var myTask = function(args,next) {
+// My non blocking main job
+var myjob = function(args,next) {
 
     // do nothing now but in 1 sec
 
     setTimeout(function() {
 
-        // if i'm task id 10 or 20, let's add 
-        // another task dynamicaly in the queue.
+        // if i'm job id 10 or 20, let's add 
+        // another job dynamicaly in the queue.
         // It can be usefull for network operation (retry on timeout) 
 
-        if (args._taskId==10||args._taskId==20) {
-            myQueueJobs.add(myTask,[999,'bla '+args._taskId]);
+        if (args._jobId==10||args._jobId==20) {
+            myQueueJobs.add(myjob,[999,'bla '+args._jobId]);
         }
         next();
     },1000);
@@ -41,9 +38,9 @@ var myTask = function(args,next) {
 // than one queue independently
 var myQueueJobs = new require('qjobs');
 
-// Let's add 30 task and add them to the queue
+// Let's add 30 job and add them to the queue
 for (var i = 0; i<30; i++) {
-    myQueueJobs.add(myTask,[i,'test1']);
+    myQueueJobs.add(myjob,[i,'test1']);
 }
 
 // I want to know when the first job has started
@@ -57,18 +54,18 @@ myQueueJobs.on('end',function() {
 });
 
 // I want to know when each job has started
-myQueueJobs.on('taskStart',function(args) {
-    console.log('taskRun',args);
+myQueueJobs.on('jobStart',function(args) {
+    console.log('jobRun',args);
 });
 
 // I want to know when each job has ended
-myQueueJobs.on('taskEnd',function(args) {
+myQueueJobs.on('jobEnd',function(args) {
 
-    console.log('taskend',args);
+    console.log('jobend',args);
     
-    // If i'm taskId 10, then make a pause of 5 sec
+    // If i'm jobId 10, then make a pause of 5 sec
 
-    if (args._taskId == 10) {
+    if (args._jobId == 10) {
         myQueueJobs.pause(true);
         setTimeout(function() {
             myQueueJobs.pause(false);

@@ -11,10 +11,6 @@ var jobsList = [];
 var paused = false;
 var pausedId = null;
 var lastPause = 0;
-var lastNow;
-var previousJobsDone;
-var previousCpt;
-var previousTimeRemaining;
 
 /*
  * helper to set max concurrency
@@ -42,7 +38,6 @@ var run = function() {
     if (jobsDone == 0) {
         module.exports.emit('start');
         timeStart = Date.now();
-        lastNow = timeStart;
     }
 
     // while queue is empty and number of job running
@@ -62,12 +57,9 @@ var run = function() {
         // add an internal identifiant for
         // hypothetical external use
         args._jobId = jobId++;
-        //args.__jobsTotal = jobsTotal;
-        //args.__timeStart = timeStart;
-        //args.__progress= Math.ceil(((jobsDone+1)/jobsTotal)*100);
 
-        // emit taskStart event before launch the job
-        module.exports.emit('taskStart',args);
+        // emit jobStart event before launch the job
+        module.exports.emit('jobStart',args);
 
         // run the job, passing args, next() function,
         // binded to 'this'
@@ -92,8 +84,8 @@ var next = function(args) {
     jobsRunning--;
     jobsDone++;
 
-    // emit 'taskEnd' event
-    module.exports.emit('taskEnd',args);
+    // emit 'jobEnd' event
+    module.exports.emit('jobEnd',args);
 
     // if queue has been set to pause
     // then do nothing
@@ -127,25 +119,10 @@ var pause = function(status) {
 var stats = function() {
 
     var now =  Date.now();
-    var cpt = jobsTotal-jobsDone;
-    //+jobsRunning;
 
     var o = {};
-
     o._timeStart = timeStart||'N/A';
     o._timeElapsed = now - timeStart||'N/A';
-    /* TODO: fix me
-    if (paused) {
-        o._timeRemaining = 'N/A';
-    } else {
-        o._jobsPerSec = Math.ceil(((now-lastNow)/1000)*(jobsDone-previousJobsDone));
-        if (previousCpt!=cpt) {
-            o._timeRemaining = Math.round((o._jobsPerSec * cpt)/1000)/60;
-        } else {
-            o._timeRemaining =  previousTimeRemaining;
-        }
-    }
-    */
     o._jobsTotal = jobsTotal;
     o._jobsRunning = jobsRunning;
     o._jobsDone = jobsDone;
@@ -154,7 +131,7 @@ var stats = function() {
     if (paused) {
         o._status = 'Paused';
     } else {
-        if (!o._timeElapsed) {
+        if (o._timeElapsed=='N/A') {
             o._status = 'Starting';
         } else {
             if (jobsTotal == jobsDone) {
@@ -164,10 +141,6 @@ var stats = function() {
             }
         }
     }
-    previousJobsDone = jobsDone;
-    previousCpt = cpt;
-    previousTimeRemaining = o._timeRemaining;
-    lastNow = now;
     return o;
 }
 

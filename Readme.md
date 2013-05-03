@@ -1,3 +1,5 @@
+https://travis-ci.org/franck34/qjobs.png
+
 **qjobs is a simple and stupid queue job manager for nodejs.**
 
 * concurrency limiter

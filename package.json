@@ -1,13 +1,16 @@
 {
   "name": "qjobs",
-  "version": "1.0.7",
+  "version": "0.9.8",
   "description": "qjobs is a simple and stupid queue job manager for nodejs",
   "main": "qjobs.js",
   "directories": {
     "example": "examples"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tests/*.js"
+  },
+  "engines": {
+    "node": "*"
   },
   "repository": {
     "type": "git",
@@ -21,7 +24,10 @@
     "control"
   ],
   "author": "Franck TABARY",
-  "license": "BSD",
+  "license": "BeerWare",
   "readmeFilename": "Readme.md",
-  "gitHead": "6b6ea2dd626799e946ab700e4c4902ab792d3bb2"
+  "gitHead": "6b6ea2dd626799e946ab700e4c4902ab792d3bb2",
+  "devDependencies": {
+      "tap": "~0.4.0"
+  }
 }

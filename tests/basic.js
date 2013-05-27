@@ -22,7 +22,7 @@ for (var i = 0; i<10; i++) {
 }
 
 q.on('end',function() {
-    assert.ok(testExecutedJobs, 10);
+    assert.equal(testExecutedJobs, 10);
 });
 
 q.run();

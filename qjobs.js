@@ -12,6 +12,10 @@ var paused = false;
 var pausedId = null;
 var lastPause = 0;
 
+var interval = null;
+var stopAdding = false;
+var sleeping = false;
+
 /*
  * helper to set max concurrency
  */
@@ -19,6 +23,12 @@ var setConcurrency = function(max) {
     maxConcurrency = max;
 }
 
+/*
+ * helper to set delay between rafales
+ */
+var setInterval = function(delay) {
+    interval = delay;
+}
 
 /*
  * add some jobs in the queue
@@ -28,6 +38,43 @@ var add = function(job,args) {
     jobsTotal++;
 }
 
+/*
+ *
+ */
+var sleepDueToInterval = function() {
+    if (interval === null) return;
+
+    if (sleeping) {
+        return true;
+    }
+
+    if (stopAdding) {
+
+        if (jobsRunning > 0) {
+            //console.log('waiting for '+jobsRunning+' jobs to finish');
+            return true;
+        }
+
+        //console.log('waiting for '+rafaleDelay+' ms');
+        sleeping = true;
+        module.exports.emit('sleep');
+
+        setTimeout(function() {
+            stopAdding = false;
+            sleeping = false;
+            module.exports.emit('continu');
+            run();
+        },interval);
+
+        return true;
+    }
+
+    if (jobsRunning + 1 == maxConcurrency) {
+        //console.log('max concurrent jobs reached');
+        stopAdding = true;
+        return true;
+    }
+}
 
 /*
  * run the queue
@@ -40,12 +87,15 @@ var run = function() {
         timeStart = Date.now();
     }
 
+    if (sleepDueToInterval()) return;
+
     // while queue is empty and number of job running
     // concurrently are less than max job running,
     // then launch the next job
-    while (jobsList.length && jobsRunning<maxConcurrency) {
 
-        // get the next job and remove it from the queue
+    while (jobsList.length && jobsRunning < maxConcurrency) {
+        // get the next job and
+        // remove it from the queue
         var job = jobsList.shift();
 
         // increment number of job running
@@ -54,22 +104,19 @@ var run = function() {
         // fetch args for the job
         var args = job[1];
 
-        // add an internal identifiant for
-        // hypothetical external use
+        // add jobId in args
         args._jobId = jobId++;
 
-        // emit jobStart event before launch the job
+        // emit jobStart event
         module.exports.emit('jobStart',args);
 
-        // run the job, passing args, next() function,
-        // binded to 'this'
+        // run the job
         job[0](job[1],next.bind(this,args));
 
     }
 
-    // if we really finish all the jobs, let's end
-    if (jobsList.length==0 && jobsRunning==0) {
-        // emit 'end' event
+    // all jobs done ? emit end event
+    if (jobsList.length == 0 && jobsRunning == 0) {
         module.exports.emit('end');
     }
 }
@@ -149,4 +196,5 @@ module.exports.run = run;
 module.exports.add = add;
 module.exports.pause = pause;
 module.exports.setConcurrency = setConcurrency;
+module.exports.setInterval = setInterval;
 module.exports.stats = stats;

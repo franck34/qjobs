@@ -2,8 +2,7 @@
 
 **qjobs**
 ==================
-*Efficient queue job manager module for nodejs.*
-=======
+***Efficient queue job manager module for nodejs.***
 
 **Features**
 * Concurrency limiter

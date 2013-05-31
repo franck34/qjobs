@@ -5,7 +5,7 @@
 ***Efficient queue job manager module for nodejs.***
 
 Features
-=================
+--------------
 * Concurrency limiter
 * Dynamic queue, a job can be added while the queue is running
 * Optional delay before continuing after max concurrency has been reached

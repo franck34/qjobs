@@ -1,8 +1,9 @@
 [![Build Status](https://secure.travis-ci.org/franck34/qjobs.png)](http://travis-ci.org/franck34/qjobs)
 
 **qjobs**
-***Efficient queue job manager module for nodejs.***
 ==================
+*Efficient queue job manager module for nodejs.*
+=======
 
 **Features**
 * Concurrency limiter

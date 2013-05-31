@@ -1,7 +1,7 @@
 [![Build Status](https://secure.travis-ci.org/franck34/qjobs.png)](http://travis-ci.org/franck34/qjobs)
 
-***qjobs***
-**Efficient queue job manager module for nodejs.**
+**qjobs**
+***Efficient queue job manager module for nodejs.***
 ==================
 
 **Features**
@@ -13,6 +13,7 @@
 * Quick statistic function, so you can know where the queue is, at regular interval
 
 **For what it can be usefull ?**
+
 Jobs which needs to run in parallels, but in a controled maner, example: 
 * Network scanners
 * Parallels monitoring jobs

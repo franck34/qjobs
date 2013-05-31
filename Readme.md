@@ -1,13 +1,22 @@
 [![Build Status](https://secure.travis-ci.org/franck34/qjobs.png)](http://travis-ci.org/franck34/qjobs)
 
-**qjobs is a simple and stupid queue job manager for nodejs.**
+***qjobs***
+**Efficient queue job manager module for nodejs.**
+==================
 
-* concurrency limiter
-* dynamic queue (a job can be add while the queue is treated)
-* event based, can be usefull to plug within pub/sub stuffs 
-* non blocking (of course), but a job itself can run async code
-* really simple to use
-* really simple to understand
+**Features**
+* Concurrency limiter
+* Dynamic queue, a job can be added while the queue is running
+* Optional delay before continuing after max concurrency has been reached
+* Support of pause/unpause
+* Events emitter based: start, end, sleep, continu, jobStart, jobEnd
+* Quick statistic function, so you can know where the queue is, at regular interval
+
+**For what it can be usefull ?**
+Jobs which needs to run in parallels, but in a controled maner, example: 
+* Network scanners
+* Parallels monitoring jobs
+* Images/Videos related jobs 
 
 
 **Compatibility :**
@@ -16,53 +25,40 @@
 
 **Example :**
 
-(take a look at tests directory for more noisy examples)
+(take a look at tests directory if you are looking for running samples)
 
 
 ```
 // My non blocking main job
 var myjob = function(args,next) {
-
-    // do nothing now but in 1 sec
-
     setTimeout(function() {
-
-        // if i'm job id 10 or 20, let's add 
-        // another job dynamicaly in the queue.
-        // It can be usefull for network operation (retry on timeout) 
-
-        if (args._jobId==10||args._jobId==20) {
-            myQueueJobs.add(myjob,[999,'bla '+args._jobId]);
-        }
+        console.log('Do something interesting here',args);
         next();
     },1000);
 }
 
-// Notice the "new" before require, to be able to use more 
-// than one queue independently
+// qjobs stuff
+
 var myQueueJobs = new require('qjobs');
 
-// Let's add 30 job and add them to the queue
+// Let's add 30 job to the queue
 for (var i = 0; i<30; i++) {
-    myQueueJobs.add(myjob,[i,'test1']);
+    myQueueJobs.add(myjob,[i,'test '+i]);
 }
 
-// I want to know when the first job has started
+// Initialize all events
 myQueueJobs.on('start',function() {
-    console.log('starting ...');
+    console.log('Starting ...');
 });
 
-// I want to know when the last job has ended
 myQueueJobs.on('end',function() {
-    console.log('end');
+    console.log('... All jobs done');
 });
 
-// I want to know when each job has started
 myQueueJobs.on('jobStart',function(args) {
-    console.log('jobRun',args);
+    console.log('jobStart',args);
 });
 
-// I want to know when each job has ended
 myQueueJobs.on('jobEnd',function(args) {
 
     console.log('jobend',args);

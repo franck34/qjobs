@@ -13,19 +13,21 @@ Features
 * Events emitter based: start, end, sleep, continu, jobStart, jobEnd
 * Quick statistic function, so you can know where the queue is, at regular interval
 
-**For what it can be usefull ?**
-
+For what it can be usefull ?
+---------------------
 Jobs which needs to run in parallels, but in a controled maner, example: 
 * Network scanners
 * Parallels monitoring jobs
 * Images/Videos related jobs 
 
 
-**Compatibility :**
+Compatibility :
+------------------
 * not tested with nodejs < 0.10
 
 
-**Example :**
+Examples
+--------------------
 
 (take a look at tests directory if you are looking for running samples)
 

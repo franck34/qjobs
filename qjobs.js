@@ -209,4 +209,10 @@ module.exports = function(options) {
     return self;
 };
 
-
+// backward compatibility < 1.0.9
+module.exports.run = run;
+module.exports.add = add;
+module.exports.setConcurrency = setConcurrency;
+module.exports.setInterval = setInterval;
+module.exports.stats = stats;
+module.exports.on = self.on

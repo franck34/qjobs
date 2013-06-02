@@ -2,7 +2,9 @@
 var assert = require('assert');
 
 // only 2 jobs in the same time
-var q = new require('../qjobs')({maxConcurrency:2});
+var q = new require('../qjobs');
+
+q.setConcurrency(2);
 
 var testExecutedJobs = 0;
 

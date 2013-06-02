@@ -57,12 +57,12 @@ var sleepDueToInterval = function() {
 
         //console.log('waiting for '+rafaleDelay+' ms');
         sleeping = true;
-        module.exports.emit('sleep');
+        self.emit('sleep');
 
         setTimeout(function() {
             stopAdding = false;
             sleeping = false;
-            module.exports.emit('continu');
+            self.emit('continu');
             run();
         },interval);
 
@@ -83,7 +83,7 @@ var run = function() {
 
     // first launch, let's emit start event
     if (jobsDone == 0) {
-        module.exports.emit('start');
+        self.emit('start');
         timeStart = Date.now();
     }
 
@@ -108,7 +108,7 @@ var run = function() {
         args._jobId = jobId++;
 
         // emit jobStart event
-        module.exports.emit('jobStart',args);
+        self.emit('jobStart',args);
 
         // run the job
         job[0](job[1],next.bind(this,args));
@@ -117,7 +117,7 @@ var run = function() {
 
     // all jobs done ? emit end event
     if (jobsList.length == 0 && jobsRunning == 0) {
-        module.exports.emit('end');
+        self.emit('end');
     }
 }
 
@@ -132,7 +132,7 @@ var next = function(args) {
     jobsDone++;
 
     // emit 'jobEnd' event
-    module.exports.emit('jobEnd',args);
+    self.emit('jobEnd',args);
 
     // if queue has been set to pause
     // then do nothing
@@ -157,8 +157,8 @@ var pause = function(status) {
     if (paused && !pausedId) {
         lastPause = Date.now();
         pausedId = setInterval(function() {
-            var since= Date.now() - lastPause;
-            module.exports.emit('inPause',since);
+            var since = Date.now() - lastPause;
+            self.emit('inPause',since);
         },1000);
     }
 }
@@ -168,33 +168,45 @@ var stats = function() {
     var now =  Date.now();
 
     var o = {};
-    o._timeStart = timeStart||'N/A';
-    o._timeElapsed = now - timeStart||'N/A';
+    o._timeStart = timeStart || 'N/A';
+    o._timeElapsed = (now - timeStart) || 'N/A';
     o._jobsTotal = jobsTotal;
     o._jobsRunning = jobsRunning;
     o._jobsDone = jobsDone;
     o._progress = Math.floor((jobsDone/jobsTotal)*100);
     o._concurrency = maxConcurrency;
+
     if (paused) {
         o._status = 'Paused';
-    } else {
-        if (o._timeElapsed=='N/A') {
-            o._status = 'Starting';
-        } else {
-            if (jobsTotal == jobsDone) {
-                o._status = 'Finished';
-            } else {
-                o._status = 'Running';
-            }
-        }
+        return o;
     }
+
+    if (o._timeElapsed == 'N/A') {
+        o._status = 'Starting';
+        return o;
+    }
+
+    if (jobsTotal == jobsDone) {
+        o._status = 'Finished';
+        return o;
+    }
+
+    o._status = 'Running';
     return o;
 }
 
-module.exports = new EventEmitter();
-module.exports.run = run;
-module.exports.add = add;
-module.exports.pause = pause;
-module.exports.setConcurrency = setConcurrency;
-module.exports.setInterval = setInterval;
-module.exports.stats = stats;
+var self = new EventEmitter();
+
+module.exports = function(options) {
+    maxConcurrency = options.maxConcurrency || maxConcurrency;
+    interval = options.interval || interval;
+
+    self.run = run;
+    self.add = add;
+    self.setConcurrency = setConcurrency;
+    self.setInterval = setInterval;
+    self.stats = stats;
+    return self;
+};
+
+

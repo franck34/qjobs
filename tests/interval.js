@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 var assert = require('assert');
-var q = new require('../qjobs');
 
 // maximum number of jobs executed in parallels
 var maxConcurrency = 5;
 
-// number of total jobs
-var maxJobs = 20;
-
 // delay between each group of maxConcurrency jobs done
 var interval = 1000;
+
+var q = new require('../qjobs')({
+    maxConcurrency:maxConcurrency,
+    interval:interval
+});
+
+// number of total jobs
+var maxJobs = 20;
 
 // tests dedicated variables
 var testExecutedJobs = 0;
@@ -26,10 +30,6 @@ var myjob = function(args,next) {
         next();
     },args[1]);
 }
-
-// only 2 jobs in the same time
-q.setConcurrency(maxConcurrency);
-q.setInterval(interval);
 
 // Let's add 10 job and add them to the queue
 for (var i = 0; i<maxJobs; i++) {

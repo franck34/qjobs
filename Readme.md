@@ -33,7 +33,9 @@ Examples
 
 
 ```
-// My non blocking main job
+var qjobs = new require('./qjobs');
+                                
+// My non blocking main job     
 var myjob = function(args,next) {
     setTimeout(function() {
         console.log('Do something interesting here',args);
@@ -41,49 +43,47 @@ var myjob = function(args,next) {
     },1000);
 }
 
-// qjobs stuff
-
-var myQueueJobs = new require('qjobs');
+var q = new qjobs({maxConcurrency:10});
 
 // Let's add 30 job to the queue
 for (var i = 0; i<30; i++) {
-    myQueueJobs.add(myjob,[i,'test '+i]);
+    q.add(myjob,[i,'test '+i]);
 }
 
-// Initialize all events
-myQueueJobs.on('start',function() {
+q.on('start',function() {
     console.log('Starting ...');
 });
 
-myQueueJobs.on('end',function() {
+q.on('end',function() {
     console.log('... All jobs done');
 });
 
-myQueueJobs.on('jobStart',function(args) {
+q.on('jobStart',function(args) {
     console.log('jobStart',args);
 });
 
-myQueueJobs.on('jobEnd',function(args) {
+q.on('jobEnd',function(args) {
 
     console.log('jobend',args);
-    
+
     // If i'm jobId 10, then make a pause of 5 sec
 
     if (args._jobId == 10) {
-        myQueueJobs.pause(true);
+        q.pause(true);
         setTimeout(function() {
-            myQueueJobs.pause(false);
+            q.pause(false);
         },5000);
     }
 });
 
-// I want to know if queue is in pause every sec
-myQueueJobs.on('inPause',function(since) {
+q.on('pause',function(since) {
     console.log('in pause since '+since+' milliseconds');
 });
 
+q.on('unpause',function() {
+    console.log('pause end, continu ..');
+});
 
-// JOBS !! leeeeeeeeeet's staaaaaaaart !
-myQueueJobs.run();
-
+q.run();
+```
 

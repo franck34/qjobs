@@ -1,77 +1,97 @@
+var util = require('util');
+var events = require('events').EventEmitter;
 
-var EventEmitter = require('events').EventEmitter;
+var qjob = function(options) {
 
-var maxConcurrency  = 10;
-var jobsRunning = 0;
-var jobsDone = 0;
-var jobsTotal = 0;
-var timeStart;
-var jobId = 0;
-var jobsList = [];
-var paused = false;
-var pausedId = null;
-var lastPause = 0;
+    if(false === (this instanceof qjob)) {
+        return new qjob(options);
+    }
 
-var interval = null;
-var stopAdding = false;
-var sleeping = false;
+    this.maxConcurrency  = 10;
+    this.jobsRunning = 0;
+    this.jobsDone = 0;
+    this.jobsTotal = 0;
+    this.timeStart;
+    this.jobId = 0;
+    this.jobsList = [];
+    this.paused = false;
+    this.pausedId = null;
+    this.lastPause = 0;
+
+    this.interval = null;
+    this.stopAdding = false;
+    this.sleeping = false;
+
+    if (options) {
+        this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
+        this.interval = options.interval || this.interval;
+    }
+    events.call(this);
+};
+
+util.inherits(qjob, events);
 
 /*
  * helper to set max concurrency
  */
-var setConcurrency = function(max) {
-    maxConcurrency = max;
+qjob.prototype.setConcurrency = function(max) {
+    this.maxConcurrency = max;
 }
 
 /*
  * helper to set delay between rafales
  */
-var setInterval = function(delay) {
-    interval = delay;
+qjob.prototype.setInterval = function(delay) {
+    this.interval = delay;
 }
 
 /*
  * add some jobs in the queue
  */
-var add = function(job,args) {
-    jobsList.push([job,args]);
-    jobsTotal++;
+qjob.prototype.add = function(job,args) {
+    var self = this;
+    self.jobsList.push([job,args]);
+    self.jobsTotal++;
 }
 
 /*
  *
  */
-var sleepDueToInterval = function() {
-    if (interval === null) return;
+qjob.prototype.sleepDueToInterval = function() {
+    var self = this;
 
-    if (sleeping) {
+    if (this.interval === null) {
+        return;
+    }
+
+    if (this.sleeping) {
         return true;
     }
 
-    if (stopAdding) {
+    if (this.stopAdding) {
 
-        if (jobsRunning > 0) {
+        if (this.jobsRunning > 0) {
             //console.log('waiting for '+jobsRunning+' jobs to finish');
             return true;
         }
 
         //console.log('waiting for '+rafaleDelay+' ms');
-        sleeping = true;
+        this.sleeping = true;
         self.emit('sleep');
 
         setTimeout(function() {
-            stopAdding = false;
-            sleeping = false;
+            this.stopAdding = false;
+            this.sleeping = false;
             self.emit('continu');
-            run();
-        },interval);
+            self.run();
+        }.bind(self),this.interval);
 
         return true;
     }
 
-    if (jobsRunning + 1 == maxConcurrency) {
+    if (this.jobsRunning + 1 == this.maxConcurrency) {
         //console.log('max concurrent jobs reached');
-        stopAdding = true;
+        this.stopAdding = true;
         return true;
     }
 }
@@ -79,44 +99,47 @@ var sleepDueToInterval = function() {
 /*
  * run the queue
  */
-var run = function() {
+qjob.prototype.run = function() {
+
+    var self = this;
 
     // first launch, let's emit start event
-    if (jobsDone == 0) {
+    if (this.jobsDone == 0) {
         self.emit('start');
-        timeStart = Date.now();
+        this.timeStart = Date.now();
     }
 
-    if (sleepDueToInterval()) return;
+    if (self.sleepDueToInterval()) return;
 
     // while queue is empty and number of job running
     // concurrently are less than max job running,
     // then launch the next job
 
-    while (jobsList.length && jobsRunning < maxConcurrency) {
+    while (this.jobsList.length && this.jobsRunning < this.maxConcurrency) {
         // get the next job and
         // remove it from the queue
-        var job = jobsList.shift();
+        var job = self.jobsList.shift();
 
         // increment number of job running
-        jobsRunning++;
+        self.jobsRunning++;
 
         // fetch args for the job
         var args = job[1];
 
         // add jobId in args
-        args._jobId = jobId++;
+        args._jobId = this.jobId++;
 
         // emit jobStart event
         self.emit('jobStart',args);
 
         // run the job
-        job[0](job[1],next.bind(this,args));
-
+        setTimeout(function() {
+            this.j(this.args,self.next.bind(self,this.args));
+        }.bind({j:job[0],args:args}),1);
     }
 
     // all jobs done ? emit end event
-    if (jobsList.length == 0 && jobsRunning == 0) {
+    if (this.jobsList.length == 0 && this.jobsRunning == 0) {
         self.emit('end');
     }
 }
@@ -125,21 +148,23 @@ var run = function() {
  * a task has been terminated,
  * so 'next()' has been called
  */
-var next = function(args) {
+qjob.prototype.next = function(args) {
+
+    var self = this;
 
     // update counters
-    jobsRunning--;
-    jobsDone++;
+    this.jobsRunning--;
+    this.jobsDone++;
 
     // emit 'jobEnd' event
     self.emit('jobEnd',args);
 
     // if queue has been set to pause
     // then do nothing
-    if (paused) return;
+    if (this.paused) return;
 
     // else, execute run() function
-    run();
+    self.run();
 }
 
 /*
@@ -148,35 +173,36 @@ var next = function(args) {
  * it will stop launching pending jobs
  * until paused = false
  */
-var pause = function(status) {
-    paused = status;
-    if (!paused && pausedId) {
-        clearInterval(pausedId);
-        run();
+qjob.prototype.pause = function(status) {
+    var self = this;
+    this.paused = status;
+    if (!this.paused && this.pausedId) {
+        clearInterval(this.pausedId);
+        this.run();
     }
-    if (paused && !pausedId) {
-        lastPause = Date.now();
-        pausedId = setInterval(function() {
+    if (this.paused && !this.pausedId) {
+        this.lastPause = Date.now();
+        this.pausedId = setInterval(function() {
             var since = Date.now() - lastPause;
             self.emit('inPause',since);
         },1000);
     }
 }
 
-var stats = function() {
+qjob.prototype.stats = function() {
 
     var now =  Date.now();
 
     var o = {};
-    o._timeStart = timeStart || 'N/A';
-    o._timeElapsed = (now - timeStart) || 'N/A';
-    o._jobsTotal = jobsTotal;
-    o._jobsRunning = jobsRunning;
-    o._jobsDone = jobsDone;
-    o._progress = Math.floor((jobsDone/jobsTotal)*100);
-    o._concurrency = maxConcurrency;
+    o._timeStart = this.timeStart || 'N/A';
+    o._timeElapsed = (now - this.timeStart) || 'N/A';
+    o._jobsTotal = this.jobsTotal;
+    o._jobsRunning = this.jobsRunning;
+    o._jobsDone = this.jobsDone;
+    o._progress = Math.floor((this.jobsDone/this.jobsTotal)*100);
+    o._concurrency = this.maxConcurrency;
 
-    if (paused) {
+    if (this.paused) {
         o._status = 'Paused';
         return o;
     }
@@ -186,7 +212,7 @@ var stats = function() {
         return o;
     }
 
-    if (jobsTotal == jobsDone) {
+    if (this.jobsTotal == this.jobsDone) {
         o._status = 'Finished';
         return o;
     }
@@ -195,24 +221,5 @@ var stats = function() {
     return o;
 }
 
-var self = new EventEmitter();
 
-module.exports = function(options) {
-    maxConcurrency = options.maxConcurrency || maxConcurrency;
-    interval = options.interval || interval;
-
-    self.run = run;
-    self.add = add;
-    self.setConcurrency = setConcurrency;
-    self.setInterval = setInterval;
-    self.stats = stats;
-    return self;
-};
-
-// backward compatibility < 1.0.9
-module.exports.run = run;
-module.exports.add = add;
-module.exports.setConcurrency = setConcurrency;
-module.exports.setInterval = setInterval;
-module.exports.stats = stats;
-module.exports.on = self.on
+module.exports = qjob;

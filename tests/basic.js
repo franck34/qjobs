@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 var assert = require('assert');
+var qjob = require('../qjobs');
 
 // only 2 jobs in the same time
-var q = new require('../qjobs');
-
-q.setConcurrency(2);
+var q = new qjob({maxConcurrency:2});
 
 var testExecutedJobs = 0;
 

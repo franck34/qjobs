@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 var assert = require('assert');
+var qjob = require('../qjobs');
 
 var maxConcurrency = 2;
-// only 2 jobs in the same time
-var q = new require('../qjobs')({maxConcurrency:maxConcurrency});
+var q = new qjob({maxConcurrency:maxConcurrency});
 
 var testExecutedJobs = 0;
 var testStartFired = false;
@@ -47,8 +47,6 @@ q.on('end',function() {
     assert.ok(testStartFired);
 });
 
-setTimeout(q.run,1);
-
 var running = q.stats()._jobsRunning;
 
 assert.equal(testExecutedJobs,0);
@@ -57,3 +55,5 @@ assert.equal(testJobsEndFired,0);
 assert.equal(running,0);
 assert.ok(!testStartFired);
 assert.ok(!testEndFired);
+
+q.run();

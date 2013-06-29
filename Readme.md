@@ -85,5 +85,8 @@ q.on('unpause',function() {
 });
 
 q.run();
+
+//q.abort() will empty jobs list
+
 ```
 

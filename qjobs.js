@@ -22,6 +22,8 @@ var qjob = function(options) {
     this.stopAdding = false;
     this.sleeping = false;
 
+    this.aborting = false;
+
     if (options) {
         this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
         this.interval = options.interval || this.interval;
@@ -111,6 +113,10 @@ qjob.prototype.run = function() {
 
     if (self.sleepDueToInterval()) return;
 
+    if (self.aborting) {
+        this.jobsList = [];
+    }
+
     // while queue is empty and number of job running
     // concurrently are less than max job running,
     // then launch the next job
@@ -178,14 +184,16 @@ qjob.prototype.pause = function(status) {
     this.paused = status;
     if (!this.paused && this.pausedId) {
         clearInterval(this.pausedId);
+        self.emit('unpause');
         this.run();
     }
     if (this.paused && !this.pausedId) {
-        this.lastPause = Date.now();
+        self.lastPause = Date.now();
         this.pausedId = setInterval(function() {
-            var since = Date.now() - lastPause;
-            self.emit('inPause',since);
+            var since = Date.now() - self.lastPause;
+            self.emit('pause',since);
         },1000);
+        return;
     }
 }
 
@@ -221,5 +229,8 @@ qjob.prototype.stats = function() {
     return o;
 }
 
+qjob.prototype.abort = function() {
+    this.aborting = true;
+}
 
 module.exports = qjob;

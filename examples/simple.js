@@ -19,7 +19,7 @@ var myjob = function(args,next) {
 
 // Notice the "new" before require, to be able to use more
 // than one queue independently
-var myQueueJobs = new require('../qjobs');
+var myQueueJobs = new require('../qjobs')();
 
 // Let's add 30 job and add them to the queue
 for (var i = 0; i<30; i++) {
@@ -60,7 +60,7 @@ myQueueJobs.on('jobEnd',function(args) {
 });
 
 // I want to know if queue is in pause every sec
-myQueueJobs.on('inPause',function(since) {
+myQueueJobs.on('pause',function(since) {
     console.log('in pause since '+since+' milliseconds');
 });
 
